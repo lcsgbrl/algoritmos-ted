@@ -3,246 +3,467 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rede de Contatos — Grafo</title>
+<title>Rede de Contatos — Grafos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    background: #0f1117;
-    color: #e2e8f0;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
-  header {
-    padding: 1.5rem 2rem 1rem;
-    border-bottom: 1px solid #1e2433;
-  }
-  header h1 { font-size: 1.4rem; font-weight: 600; color: #93c5fd; }
-  header p  { font-size: 0.85rem; color: #64748b; margin-top: 4px; }
-  .layout {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-  }
+:root {
+  --white:    #ffffff;
+  --bg:       #f7f8fa;
+  --bg2:      #f0f2f5;
+  --border:   #e4e7ed;
+  --border2:  #d0d5de;
+  --text:     #1a1d23;
+  --text2:    #5a6072;
+  --text3:    #9aa0b0;
+  --blue:     #3b7eff;
+  --blue-lt:  #eff4ff;
+  --blue-md:  #c7d9ff;
+  --green:    #16a36b;
+  --green-lt: #ecfaf4;
+  --green-md: #a3e4ca;
+  --amber:    #d97706;
+  --amber-lt: #fef9ec;
+  --radius:   10px;
+  --sidebar:  300px;
+  --header:   58px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ── Header ──────────────────────────────────── */
+header {
+  height: var(--header);
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.75rem;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logo-mark {
+  width: 32px;
+  height: 32px;
+  background: var(--blue);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-mark svg {
+  width: 17px;
+  height: 17px;
+  stroke: white;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.header-title {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.header-subtitle {
+  font-size: 0.78rem;
+  color: var(--text3);
+  margin-top: 1px;
+}
+
+.header-badges {
+  display: flex;
+  gap: 6px;
+}
+
+.badge {
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 3px 9px;
+  border-radius: 999px;
+  letter-spacing: 0.01em;
+}
+
+.badge-blue  { background: var(--blue-lt);  color: var(--blue);  border: 1px solid var(--blue-md); }
+.badge-green { background: var(--green-lt); color: var(--green); border: 1px solid var(--green-md); }
+
+/* ── Layout ──────────────────────────────────── */
+.layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  height: calc(100vh - var(--header));
+}
+
+/* ── Canvas ──────────────────────────────────── */
+#canvas-wrap {
+  flex: 1;
+  position: relative;
+  background: var(--white);
+  border-right: 1px solid var(--border);
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.canvas-hint {
+  position: absolute;
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--white);
+  border: 1px solid var(--border);
+  color: var(--text3);
+  font-size: 0.75rem;
+  padding: 5px 14px;
+  border-radius: 999px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ── Sidebar ──────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar);
+  background: var(--white);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2) transparent;
+}
+
+.sidebar-section {
+  padding: 1.25rem 1.4rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-label {
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+  margin-bottom: 0.85rem;
+}
+
+/* ── Stat cards ──────────────────────────────── */
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.stat-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+}
+
+.stat-card .val {
+  font-size: 1.6rem;
+  font-weight: 300;
+  color: var(--text);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.stat-card .lbl {
+  font-size: 0.72rem;
+  color: var(--text3);
+  margin-top: 4px;
+}
+
+.stat-popular {
+  grid-column: span 2;
+  background: var(--blue-lt);
+  border-color: var(--blue-md);
+}
+
+.stat-popular .val {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--blue);
+  letter-spacing: -0.01em;
+}
+
+/* ── BFS ─────────────────────────────────────── */
+.bfs-empty {
+  color: var(--text3);
+  font-size: 0.8rem;
+  padding: 0.25rem 0;
+}
+
+.bfs-origin-badge {
+  display: inline-block;
+  background: var(--blue-lt);
+  color: var(--blue);
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  border: 1px solid var(--blue-md);
+}
+
+.bfs-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.bfs-row:last-child { border-bottom: none; }
+
+.bfs-row .nome {
+  width: 88px;
+  font-size: 0.82rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bfs-row .dots {
+  display: flex;
+  gap: 3px;
+  flex: 1;
+}
+
+.bfs-row .dots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.dot-filled { background: var(--blue); }
+.dot-empty  { background: var(--bg2); border: 1px solid var(--border); }
+
+.bfs-row .dist {
+  font-size: 0.72rem;
+  font-family: 'DM Mono', monospace;
+  color: var(--text3);
+  min-width: 52px;
+  text-align: right;
+}
+
+/* ── Adjacência ──────────────────────────────── */
+.adj-item {
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.8rem;
+}
+
+.adj-item:last-child { border-bottom: none; }
+
+.adj-nome {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.adj-lista {
+  color: var(--text3);
+  margin-top: 2px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+}
+
+/* ── Mobile ──────────────────────────────────── */
+@media (max-width: 700px) {
+  :root { --sidebar: 100%; --header: 52px; }
+
+  .layout { flex-direction: column; height: auto; overflow: visible; }
+
   #canvas-wrap {
-    flex: 1;
-    position: relative;
+    height: 55vw;
+    min-height: 260px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
   }
-  canvas {
-    display: block;
-    width: 100%;
-    height: 100%;
-  }
-  .sidebar {
-    width: 280px;
-    background: #131722;
-    border-left: 1px solid #1e2433;
-    padding: 1.2rem;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 1.2rem;
-  }
-  .sidebar h3 {
-    font-size: 0.78rem;
-    text-transform: uppercase;
-    letter-spacing: .08em;
-    color: #475569;
-    margin-bottom: .5rem;
-  }
-  .adjacencia-item {
-    font-size: 0.82rem;
-    padding: 6px 0;
-    border-bottom: 1px solid #1e2433;
-    line-height: 1.5;
-  }
-  .adjacencia-item strong { color: #93c5fd; }
-  .adjacencia-item span   { color: #64748b; }
-  .stat-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-  .stat-card {
-    background: #1a2035;
-    border-radius: 8px;
-    padding: 10px 12px;
-    font-size: 0.82rem;
-  }
-  .stat-card .val { font-size: 1.5rem; font-weight: 700; color: #93c5fd; }
-  .stat-card .lbl { color: #64748b; font-size: 0.73rem; margin-top: 2px; }
-  .bfs-result {
-    font-size: 0.82rem;
-  }
-  .bfs-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 5px 0;
-    border-bottom: 1px solid #1e2433;
-  }
-  .bfs-row .nome { width: 90px; color: #e2e8f0; }
-  .bfs-row .dots span {
-    display: inline-block;
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    margin-right: 2px;
-  }
-  .dot-filled  { background: #93c5fd; }
-  .dot-empty   { background: #1e2433; }
-  .bfs-row .dist { color: #64748b; font-size: 0.75rem; margin-left: auto; }
-  .hint {
-    font-size: 0.75rem;
-    color: #334155;
-    text-align: center;
-    padding: .5rem;
-  }
-  select, button {
-    background: #1a2035;
-    border: 1px solid #2d3748;
-    color: #e2e8f0;
-    border-radius: 6px;
-    padding: 6px 10px;
-    font-size: 0.82rem;
-    cursor: pointer;
-    width: 100%;
-    margin-bottom: 6px;
-  }
-  button:hover { background: #233050; }
-  .badge {
-    display: inline-block;
-    font-size: 0.7rem;
-    padding: 2px 8px;
-    border-radius: 999px;
-    margin-left: 6px;
-  }
-  .badge-blue  { background: #1e3a5f; color: #93c5fd; }
-  .badge-green { background: #14532d; color: #86efac; }
+
+  .sidebar { width: 100%; max-height: none; }
+  .header-badges { display: none; }
+  .header-subtitle { display: none; }
+}
+
+@media (max-width: 420px) {
+  header { padding: 0 1rem; }
+  .sidebar-section { padding: 1rem; }
+}
 </style>
 </head>
 <body>
+
 <header>
-  <h1>Rede de Contatos <span class="badge badge-blue">Grafo Não-Direcionado</span><span class="badge badge-green">Não-Ponderado</span></h1>
-  <p>Lista de Adjacência · BFS · DFS · Componentes Conexos</p>
+  <div class="header-left">
+    <div class="logo-mark">
+      <svg viewBox="0 0 20 20">
+        <circle cx="10" cy="4"  r="2.2"/>
+        <circle cx="3"  cy="15" r="2.2"/>
+        <circle cx="17" cy="15" r="2.2"/>
+        <line x1="10" y1="6.2"  x2="3.8"  y2="13"/>
+        <line x1="10" y1="6.2"  x2="16.2" y2="13"/>
+        <line x1="5"  y1="15"   x2="15"   y2="15"/>
+      </svg>
+    </div>
+    <div>
+      <div class="header-title">Rede de Contatos</div>
+      <div class="header-subtitle">Lista de Adjacência · BFS · DFS · Componentes Conexos</div>
+    </div>
+  </div>
+  <div class="header-badges">
+    <span class="badge badge-blue">Não-Direcionado</span>
+    <span class="badge badge-green">Não-Ponderado</span>
+  </div>
 </header>
 
 <div class="layout">
   <div id="canvas-wrap">
     <canvas id="c"></canvas>
-    <div class="hint">Clique em um nó para ver as distâncias BFS</div>
+    <div class="canvas-hint">Clique em um nó para explorar as distâncias BFS</div>
   </div>
 
   <div class="sidebar">
-    <div>
-      <h3>BFS — Origem: <span id="bfs-origem">Clique num nó</span></h3>
-      <div id="bfs-resultado" class="bfs-result"></div>
+
+    <!-- BFS -->
+    <div class="sidebar-section">
+      <div class="section-label">
+        BFS — Distâncias
+        <span id="bfs-origem-wrap" style="margin-left:6px"></span>
+      </div>
+      <div id="bfs-resultado"></div>
     </div>
 
-    <div>
-      <h3>Estatísticas</h3>
+    <!-- Estatísticas -->
+    <div class="sidebar-section">
+      <div class="section-label">Estatísticas do Grafo</div>
       <div class="stat-grid" id="stats"></div>
     </div>
 
-    <div>
-      <h3>Lista de Adjacência</h3>
+    <!-- Lista de Adjacência -->
+    <div class="sidebar-section">
+      <div class="section-label">Lista de Adjacência</div>
       <div id="adj-list"></div>
     </div>
+
   </div>
 </div>
 
 <script>
-// ── Dados do grafo ────────────────────────────────────────────────────
-const pessoas = ["Alexandre","Emerson","Marcos","Patricia","Bruno","Carla","Diego"];
+const pessoas = ["Rafaela","Tobias","Ingrid","Caetano","Mirela","Davi","Lorena"];
 const arestas = [
-  ["Alexandre","Emerson"],["Alexandre","Marcos"],["Alexandre","Patricia"],
-  ["Emerson","Marcos"],["Emerson","Bruno"],
-  ["Marcos","Carla"],["Patricia","Diego"],["Bruno","Carla"]
+  ["Rafaela","Tobias"],["Rafaela","Ingrid"],["Rafaela","Caetano"],
+  ["Tobias","Ingrid"],["Tobias","Mirela"],
+  ["Ingrid","Davi"],["Caetano","Lorena"],["Mirela","Davi"]
 ];
 
-// Lista de adjacência
 const adj = {};
 pessoas.forEach(p => adj[p] = new Set());
 arestas.forEach(([a,b]) => { adj[a].add(b); adj[b].add(a); });
 
-// ── Layout circular + ajustes ─────────────────────────────────────────
+// Layout circular
 const posBase = {};
-const cx = 400, cy = 280, r = 200;
+const CX = 400, CY = 270, R = 185;
 pessoas.forEach((p, i) => {
   const ang = (2 * Math.PI * i / pessoas.length) - Math.PI / 2;
-  posBase[p] = { x: cx + r * Math.cos(ang), y: cy + r * Math.sin(ang) };
+  posBase[p] = { x: CX + R * Math.cos(ang), y: CY + R * Math.sin(ang) };
 });
 
-// ── Canvas setup ──────────────────────────────────────────────────────
 const canvas = document.getElementById('c');
-const ctx    = canvas.getContext('2d');
-let W, H;
-const CORES = {
-  normal:   '#3b82f6',
-  highlight:'#fbbf24',
-  muted:    '#1e3a5f',
-  aresta:   '#1e3a5f',
-  arestaHL: '#fbbf24',
-  text:     '#e2e8f0',
-  textMuted:'#64748b',
-  bg:       '#0f1117',
+const ctx = canvas.getContext('2d');
+let W, H, selectedNode = null;
+
+// Paleta claro
+const C = {
+  bg:        '#ffffff',
+  nodeNorm:  '#3b7eff',
+  nodeSel:   '#1a1d23',
+  nodeAmigo: '#16a36b',
+  nodeMuted: '#e4e7ed',
+  edgeNorm:  '#d0d5de',
+  edgeSel:   '#3b7eff',
+  label:     '#1a1d23',
+  labelMuted:'#c0c5d0',
+  bfsNum:    '#ffffff',
 };
 
 function resize() {
-  const wrap = document.getElementById('canvas-wrap');
-  W = canvas.width  = wrap.offsetWidth;
-  H = canvas.height = wrap.offsetHeight;
+  const w = document.getElementById('canvas-wrap');
+  W = canvas.width  = w.offsetWidth  * devicePixelRatio;
+  H = canvas.height = w.offsetHeight * devicePixelRatio;
+  canvas.style.width  = w.offsetWidth  + 'px';
+  canvas.style.height = w.offsetHeight + 'px';
+  ctx.scale(devicePixelRatio, devicePixelRatio);
   draw(selectedNode);
 }
-window.addEventListener('resize', resize);
+window.addEventListener('resize', () => { ctx.setTransform(1,0,0,1,0,0); resize(); });
 
-// ── BFS ───────────────────────────────────────────────────────────────
 function bfs(origem) {
   const dist = { [origem]: 0 };
   const fila = [origem];
   while (fila.length) {
     const atual = fila.shift();
-    for (const viz of adj[atual]) {
-      if (!(viz in dist)) {
-        dist[viz] = dist[atual] + 1;
-        fila.push(viz);
-      }
-    }
+    for (const v of adj[atual])
+      if (!(v in dist)) { dist[v] = dist[atual] + 1; fila.push(v); }
   }
   return dist;
 }
 
-// ── Desenho ───────────────────────────────────────────────────────────
-let selectedNode = null;
-
 function posAt(nome) {
-  // Escala as posições base para o canvas atual
-  const scaleX = W / 800, scaleY = H / 560;
-  const s = Math.min(scaleX, scaleY);
-  const offX = (W - 800 * s) / 2, offY = (H - 560 * s) / 2;
+  const vw = W / devicePixelRatio, vh = H / devicePixelRatio;
+  const s = Math.min(vw / 800, vh / 560) * 0.88;
   return {
-    x: posBase[nome].x * s + offX,
-    y: posBase[nome].y * s + offY,
+    x: (posBase[nome].x - CX) * s + vw / 2,
+    y: (posBase[nome].y - CY) * s + vh / 2,
   };
 }
 
 function draw(sel) {
   if (!W) return;
-  ctx.fillStyle = CORES.bg;
-  ctx.fillRect(0, 0, W, H);
+  const vw = W / devicePixelRatio, vh = H / devicePixelRatio;
+  ctx.clearRect(0, 0, vw, vh);
+  ctx.fillStyle = C.bg;
+  ctx.fillRect(0, 0, vw, vh);
 
   const distancias = sel ? bfs(sel) : null;
 
   // Arestas
   arestas.forEach(([a, b]) => {
     const pa = posAt(a), pb = posAt(b);
-    const ativo = sel && (adj[sel].has(a) && b === sel || adj[sel].has(b) && a === sel || a === sel || b === sel);
+    const ativo = sel && (a === sel || b === sel);
     ctx.beginPath();
     ctx.moveTo(pa.x, pa.y);
     ctx.lineTo(pb.x, pb.y);
-    ctx.strokeStyle = ativo ? CORES.arestaHL : CORES.aresta;
-    ctx.lineWidth   = ativo ? 2 : 1;
-    ctx.globalAlpha = ativo ? 0.85 : 0.4;
+    ctx.strokeStyle = ativo ? C.edgeSel : C.edgeNorm;
+    ctx.lineWidth   = ativo ? 2 : 1.5;
+    ctx.globalAlpha = ativo ? 0.7 : 0.9;
     ctx.stroke();
     ctx.globalAlpha = 1;
   });
@@ -253,35 +474,43 @@ function draw(sel) {
     const isSel   = nome === sel;
     const isAmigo = sel && adj[sel].has(nome);
     const isMuted = sel && !isSel && !isAmigo;
-    const raio = isSel ? 22 : 16;
+    const raio    = isSel ? 20 : 15;
+    const d = distancias ? distancias[nome] : null;
 
+    // Círculo
     ctx.beginPath();
     ctx.arc(x, y, raio, 0, Math.PI * 2);
-    ctx.fillStyle = isSel ? CORES.highlight : isAmigo ? '#1d4ed8' : isMuted ? CORES.muted : CORES.normal;
-    ctx.globalAlpha = isMuted ? 0.4 : 1;
+    ctx.fillStyle = isSel ? C.nodeSel : isAmigo ? C.nodeAmigo : isMuted ? C.nodeMuted : C.nodeNorm;
+    ctx.globalAlpha = isMuted ? 0.5 : 1;
     ctx.fill();
-    ctx.strokeStyle = isSel ? '#fde68a' : '#1e3a5f';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
+
+    // Borda
+    if (!isMuted) {
+      ctx.strokeStyle = isSel ? '#1a1d23' : isAmigo ? '#0d8055' : '#2563eb';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
     ctx.globalAlpha = 1;
 
-    // Rótulo
-    ctx.fillStyle = isMuted ? CORES.textMuted : CORES.text;
-    ctx.font = `${isSel ? '500 ' : ''}${isSel ? 13 : 12}px 'Segoe UI', system-ui`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(nome.slice(0, 9), x, y + raio + 14);
-
-    // Distância BFS
-    if (distancias && nome in distancias) {
-      ctx.fillStyle = '#fbbf24';
-      ctx.font = '500 11px monospace';
-      ctx.fillText(distancias[nome] === 0 ? '★' : distancias[nome], x, y);
+    // Número BFS dentro do nó
+    if (d !== null) {
+      ctx.fillStyle = isMuted ? C.labelMuted : '#fff';
+      ctx.font = `500 ${isSel ? 12 : 11}px 'DM Mono', monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(d === 0 ? '★' : d, x, y);
     }
+
+    // Nome abaixo
+    ctx.fillStyle = isMuted ? C.labelMuted : C.label;
+    ctx.font = `${isSel ? '500' : '400'} ${isSel ? 12 : 11}px 'DM Sans', system-ui`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText(nome.slice(0, 10), x, y + raio + 6);
   });
 }
 
-// ── Clique ────────────────────────────────────────────────────────────
+// Clique
 canvas.addEventListener('click', e => {
   const rect = canvas.getBoundingClientRect();
   const mx = e.clientX - rect.left, my = e.clientY - rect.top;
@@ -295,61 +524,59 @@ canvas.addEventListener('click', e => {
   renderBFS(selectedNode);
 });
 
-// ── Sidebar: BFS ─────────────────────────────────────────────────────
+// Sidebar BFS
 function renderBFS(origem) {
-  const el = document.getElementById('bfs-resultado');
-  const lbl = document.getElementById('bfs-origem');
+  const el  = document.getElementById('bfs-resultado');
+  const wrap = document.getElementById('bfs-origem-wrap');
   if (!origem) {
-    lbl.textContent = 'Clique num nó';
-    el.innerHTML = '<div style="color:#475569;font-size:.8rem">Clique em uma pessoa no grafo.</div>';
+    wrap.innerHTML = '';
+    el.innerHTML = '<div class="bfs-empty">Selecione uma pessoa no grafo para ver as distâncias.</div>';
     return;
   }
-  lbl.textContent = origem;
-  const dist = bfs(origem);
-  const sorted = Object.entries(dist).sort((a, b) => a[1] - b[1]);
+  wrap.innerHTML = `<span class="bfs-origin-badge">${origem}</span>`;
+  const dist   = bfs(origem);
+  const sorted = Object.entries(dist).sort((a,b) => a[1] - b[1]);
   el.innerHTML = sorted.map(([nome, d]) => {
     const dots = Array.from({length: 4}, (_, i) =>
       `<span class="${i < d ? 'dot-filled' : 'dot-empty'}"></span>`).join('');
     return `<div class="bfs-row">
       <span class="nome">${nome}</span>
       <span class="dots">${dots}</span>
-      <span class="dist">${d === 0 ? 'origem' : d + ' salto(s)'}</span>
+      <span class="dist">${d === 0 ? 'origem' : d === 1 ? '1 salto' : d + ' saltos'}</span>
     </div>`;
   }).join('');
 }
 
-// ── Sidebar: Adjacência ───────────────────────────────────────────────
+// Sidebar Adjacência
 function renderAdj() {
-  const el = document.getElementById('adj-list');
-  el.innerHTML = pessoas.sort().map(p => {
-    const amigos = [...adj[p]].sort().join(', ');
-    return `<div class="adjacencia-item">
-      <strong>${p}</strong><br>
-      <span>→ ${amigos || '(sem amigos)'}</span>
-    </div>`;
-  }).join('');
+  document.getElementById('adj-list').innerHTML =
+    [...pessoas].sort().map(p => {
+      const amigos = [...adj[p]].sort().join(', ');
+      return `<div class="adj-item">
+        <div class="adj-nome">${p}</div>
+        <div class="adj-lista">→ ${amigos || '(sem conexões)'}</div>
+      </div>`;
+    }).join('');
 }
 
-// ── Sidebar: Estatísticas ─────────────────────────────────────────────
+// Sidebar Estatísticas
 function renderStats() {
   const nArestas = arestas.length;
-  const graus = pessoas.map(p => adj[p].size);
-  const maxGrau = Math.max(...graus);
-  const popular = pessoas[graus.indexOf(maxGrau)];
+  const graus    = pessoas.map(p => adj[p].size);
+  const maxGrau  = Math.max(...graus);
+  const popular  = pessoas[graus.indexOf(maxGrau)];
 
-  // Componentes conexos via DFS
   const visitados = new Set();
   let nComp = 0;
   pessoas.forEach(p => {
-    if (!visitados.has(p)) {
-      nComp++;
-      const pilha = [p];
-      while (pilha.length) {
-        const atual = pilha.pop();
-        if (visitados.has(atual)) continue;
-        visitados.add(atual);
-        adj[atual].forEach(v => { if (!visitados.has(v)) pilha.push(v); });
-      }
+    if (visitados.has(p)) return;
+    nComp++;
+    const pilha = [p];
+    while (pilha.length) {
+      const atual = pilha.pop();
+      if (visitados.has(atual)) continue;
+      visitados.add(atual);
+      adj[atual].forEach(v => { if (!visitados.has(v)) pilha.push(v); });
     }
   });
 
@@ -358,14 +585,12 @@ function renderStats() {
     <div class="stat-card"><div class="val">${nArestas}</div><div class="lbl">Amizades</div></div>
     <div class="stat-card"><div class="val">${nComp}</div><div class="lbl">Componentes</div></div>
     <div class="stat-card"><div class="val">${maxGrau}</div><div class="lbl">Grau máx.</div></div>
-    <div class="stat-card" style="grid-column:span 2">
-      <div class="lbl">Mais popular</div>
-      <div style="color:#fbbf24;font-weight:600;margin-top:4px">${popular} (${maxGrau} amigos)</div>
-    </div>
-  `;
+    <div class="stat-card stat-popular">
+      <div class="lbl">Mais conectado</div>
+      <div class="val">${popular} <span style="font-size:.7rem;font-weight:400;color:var(--blue);opacity:.7">${maxGrau} conexões</span></div>
+    </div>`;
 }
 
-// ── Init ──────────────────────────────────────────────────────────────
 renderAdj();
 renderStats();
 renderBFS(null);
